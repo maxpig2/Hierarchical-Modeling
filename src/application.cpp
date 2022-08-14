@@ -91,6 +91,13 @@ void Application::render() {
 }
 
 
+
+int boneId = 0;
+float directionX = 0;
+float directionY = 0;
+float directionZ = 0;
+vec3 boneDirection = vec3(0,0,0);
+string boneName = "root";
 void Application::renderGUI() {
 
 	// setup window
@@ -112,16 +119,31 @@ void Application::renderGUI() {
 	ImGui::SameLine();
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 	ImGui::Separator();
-	if (ImGui::Button("Pose 1")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));};
+	ImGui::Text("Poses");
+	if (ImGui::Button("Default")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));};
 	ImGui::SameLine();
-	if (ImGui::Button("Pose 2")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//pose1.asf"));};
+	if (ImGui::Button("Sitting")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//sitting.asf"));};
 	ImGui::SameLine();
-	if (ImGui::Button("Pose 3")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//testskeleton2.asf"));};
+	if (ImGui::Button("Running")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//running.asf"));};
+	ImGui::SameLine();
+	if (ImGui::Button("Flying")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//flying.asf"));};
 	// example of how to use input boxes
 	static float exampleInput;
 	if (ImGui::InputFloat("example input", &exampleInput)) {
 		cout << "example input changed to " << exampleInput << endl;
 	}
+
+	ImGui::Separator();
+	if (ImGui::InputInt("Bone ID", &boneId)) {boneName = m_skeleton.boneName(boneId);}
+	ImGui::Text(boneName.c_str());
+	if (ImGui::InputFloat("X Direction", &directionX)) {boneDirection = vec3(directionX, boneDirection.y, boneDirection.z);}
+	if (ImGui::InputFloat("Y Direction", &directionY)) {boneDirection = vec3(boneDirection.x, directionY, boneDirection.z);}
+	if (ImGui::InputFloat("Z Direction", &directionZ)) {boneDirection = vec3(boneDirection.x, boneDirection.y, directionZ);}
+	if (ImGui::Button("RePose")) {m_skeleton.poseBone(boneId, boneDirection);};
+	if (ImGui::Button("Print Pose Directions")) {m_skeleton.printPoses();};
+
+
+
 
 	// finish creating window
 	ImGui::End();

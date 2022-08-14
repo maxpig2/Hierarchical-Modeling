@@ -27,6 +27,26 @@ void skeleton_model::draw(const mat4 &view, const mat4 &proj) {
 	}
 }
 
+void skeleton_model::poseBone(int boneid, vec3 direction) {
+	skeleton_bone currentBone = skel.bones[boneid];
+	skel.bones[boneid].direction = normalize(direction);
+}
+
+string skeleton_model::boneName(int boneid) {
+	return skel.bones[boneid].name;
+}
+
+
+void skeleton_model::printPoses() {
+	cout<<"Print bone directions ..."<<endl;
+	for (size_t i = 0; i < skel.bones.size(); i++){
+		cout<< skel.bones[i].name;
+		cout<<"	:	X: " << skel.bones[i].direction.x <<"	Y: " << skel.bones[i].direction.y <<"	Z: " << skel.bones[i].direction.z << endl;
+	}
+	cout<<"... Completed printing bone directions"<<endl;	
+}
+
+
 
 void skeleton_model::drawBone(const mat4 &parentTransform, int boneid) {
 	// TODO
@@ -41,12 +61,12 @@ void skeleton_model::drawBone(const mat4 &parentTransform, int boneid) {
 	mat4 modelview = (parentTransform);// * 1.0f;
 	skeleton_bone currentBone = skel.bones[boneid];
 
-	cout<<"Name "<< currentBone.name << endl;
+	//cout<<"Name "<< currentBone.name << endl;
 
 	mat4 View = translate(modelview, currentBone.length*currentBone.direction);
 	if(currentBone.children.size() != 0) {
 		for (int childID : currentBone.children) {
-			cout<<childID;
+			//cout<<childID;
 			drawBone(View, childID);
 		}
 	}
@@ -57,7 +77,6 @@ void skeleton_model::drawBone(const mat4 &parentTransform, int boneid) {
 	glUniform3fv(glGetUniformLocation(shader, "uColor"), 1, value_ptr(jointCol));
 
 	drawSphere();
-
 
 	mat4 transformation = mat4(1.0f);
 	transformation *= orientation(currentBone.direction,vec3(0,0,1));
@@ -77,33 +96,22 @@ void skeleton_model::drawArrow(const mat4 &parentTransform, int boneid, int dire
 	vec3 arrowCol = vec3(1,0,0);
 	mat4  arrowTransformation = parentTransform;
 
-	//arrowTransformation *= orientation(currentBone.basis,vec3(0,1,0));
+		arrowTransformation = rotate(arrowTransformation, currentBone.basis.z, vec3(0,0,1));
+		arrowTransformation = rotate(arrowTransformation, currentBone.basis.y, vec3(0,1,0));
+		arrowTransformation = rotate(arrowTransformation, currentBone.basis.x, vec3(1,0,0));
+		
 	//X Axis
-	if (direction == 1){
-		arrowTransformation = rotate(arrowTransformation, 3.1415f/2.0f, vec3(1,0,0));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.x, vec3(0,0,1));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.y, vec3(0,1,0));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.z, vec3(1,0,0));
+	if (direction == 1){//X Axis
+		arrowTransformation = rotate(arrowTransformation, radians(90.0f), vec3(0,1,0));
 	}
-	//Y Axis
-	if (direction == 2){
-		//arrowTransformation = rotate(arrowTransformation, );
-		arrowTransformation = rotate(arrowTransformation, 3.1415f/2.0f, vec3(0,-1,0));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.x, vec3(0,0,1));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.y, vec3(0,1,0));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.z, vec3(1,0,0));
+	if (direction == 2){ //Y Axis
+		arrowTransformation = rotate(arrowTransformation, radians(-90.0f), vec3(1,0,0));
 		arrowCol = vec3(0,1,0);
 	}
-	//Z Axis
-	if (direction == 3){
-		//arrowTransformation = rotate(arrowTransformation, );
-		arrowTransformation = rotate(arrowTransformation, 3.1415f/2.0f, vec3(0,0,1));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.x, vec3(0,0,1));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.y, vec3(0,1,0));
-		arrowTransformation = rotate(arrowTransformation, currentBone.basis.z, vec3(1,0,0));
+	if (direction == 3){ //Z Axis
 		arrowCol = vec3(0,0,1);
-	}
 
+	}
 
 	arrowTransformation = scale(arrowTransformation, vec3(0.005,0.005,0.06));
 	glUniformMatrix4fv(glGetUniformLocation(shader, "uModelViewMatrix"), 1, false, value_ptr(arrowTransformation));

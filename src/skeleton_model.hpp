@@ -13,6 +13,7 @@ private:
 	void drawBone(const glm::mat4 &view, int boneid);
 	void drawArrow(const glm::mat4 &view, int boneid, int direction);
 	
+	
 
 public:
 	GLuint shader = 0;
@@ -22,4 +23,7 @@ public:
 
 	skeleton_model() { }
 	void draw(const glm::mat4 &view, const glm::mat4 &proj);
+	void poseBone(int boneid, glm::vec3 direction);
+	std::string boneName(int boneid);
+	void printPoses();
 };

@@ -44,6 +44,9 @@ int skeleton_data::findBone(const std::string &name) const {
 
 
 
+
+
+
 skeleton_data::skeleton_data(const std::string &filename) {
 
 	ifstream file(filename);
