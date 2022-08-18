@@ -49,7 +49,9 @@ Application::Application(GLFWwindow *window) : m_window(window) {
 
 	m_skeleton.shader = shader;
 	m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));
-
+	m_skeleton_02.shader = shader;
+	m_skeleton_02.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));
+	m_skeleton.animation = skeleton_animation(CGRA_SRCDIR + std::string("/res/assets//walking_priman.amc"), m_skeleton.skel);
 }
 
 
@@ -87,7 +89,12 @@ void Application::render() {
 
 	// draw the model
 	//m_model.draw(view, proj);
+	m_skeleton.nextPose();
 	m_skeleton.draw(view,proj);
+	if (twoSkeletons) {
+		m_skeleton_02.nextPose();
+		m_skeleton_02.draw(view,proj);
+	}
 }
 
 
@@ -98,6 +105,7 @@ float directionY = 0;
 float directionZ = 0;
 vec3 boneDirection = vec3(0,0,0);
 string boneName = "root";
+int currentPose = 0;
 void Application::renderGUI() {
 
 	// setup window
@@ -120,18 +128,46 @@ void Application::renderGUI() {
 	if (ImGui::Button("Screenshot")) rgba_image::screenshot(true);
 	ImGui::Separator();
 	ImGui::Text("Poses");
-	if (ImGui::Button("Default")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));};
+	if (ImGui::Button("Default")) {twoSkeletons = false; m_skeleton.isAnimation = false; m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));};
 	ImGui::SameLine();
-	if (ImGui::Button("Sitting")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//sitting.asf"));};
+	if (ImGui::Button("Sitting")) {twoSkeletons = false; m_skeleton.isAnimation = false; m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//sitting.asf"));};
 	ImGui::SameLine();
-	if (ImGui::Button("Running")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//running.asf"));};
+	if (ImGui::Button("Running")) {twoSkeletons = false; m_skeleton.isAnimation = false; m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//running.asf"));};
 	ImGui::SameLine();
-	if (ImGui::Button("Flying")) {m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//flying.asf"));};
+	if (ImGui::Button("Flying")) {twoSkeletons = false;  m_skeleton.isAnimation = false; m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//flying.asf"));};
+	ImGui::Text("Animations");
+	if (ImGui::Button("Walking")) {
+		m_skeleton.poseId = 0;
+		m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));
+		m_skeleton.animation = skeleton_animation(CGRA_SRCDIR + std::string("/res/assets//walking_priman.amc"), m_skeleton.skel);
+		twoSkeletons = false;
+		m_skeleton.isAnimation = true;
+		};
+	ImGui::SameLine();	
+	if (ImGui::Button("BreakDance")) {
+		m_skeleton.poseId = 0;
+		m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));
+		m_skeleton.animation = skeleton_animation(CGRA_SRCDIR + std::string("/res/assets//breakdance_priman.amc"), m_skeleton.skel);
+		twoSkeletons = false;
+		m_skeleton.isAnimation = true;
+		};	
+	ImGui::SameLine();		
+	if (ImGui::Button("Interaction")) {
+		m_skeleton.poseId = 0;
+		m_skeleton.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));
+		m_skeleton_02.skel = skeleton_data(CGRA_SRCDIR + std::string("/res/assets//priman.asf"));
+		m_skeleton.animation = skeleton_animation(CGRA_SRCDIR + std::string("/res/assets//interaction_s1.amc"), m_skeleton.skel);
+		m_skeleton_02.poseId = 0;
+		m_skeleton_02.animation = skeleton_animation(CGRA_SRCDIR + std::string("/res/assets//interaction_s2.amc"), m_skeleton.skel);
+		twoSkeletons = true;
+		m_skeleton.isAnimation = true;
+		m_skeleton_02.isAnimation = true;
+		};		
+
+
 	// example of how to use input boxes
 	static float exampleInput;
-	if (ImGui::InputFloat("example input", &exampleInput)) {
-		cout << "example input changed to " << exampleInput << endl;
-	}
+	if (ImGui::Button("Next Pose")) {m_skeleton.nextPose();};
 
 	ImGui::Separator();
 	if (ImGui::InputInt("Bone ID", &boneId)) {boneName = m_skeleton.boneName(boneId);}

@@ -50,9 +50,12 @@ private:
 	bool m_show_grid = false;
 	bool m_showWireframe = false;
 
+	bool twoSkeletons = false;
+
 	// geometry
 	basic_model m_model;
 	skeleton_model m_skeleton;
+	skeleton_model m_skeleton_02;
 
 public:
 	// setup

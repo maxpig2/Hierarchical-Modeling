@@ -23,9 +23,14 @@ void skeleton_model::draw(const mat4 &view, const mat4 &proj) {
 
 	// if the skeleton is not empty, then draw
 	if (!skel.bones.empty()) {
-		drawBone(view, 0);
+		if (isAnimation) {
+		drawAnimation(view, 0);
+		} else{
+			drawBone(view, 0);
+		}
 	}
 }
+
 
 void skeleton_model::poseBone(int boneid, vec3 direction) {
 	skeleton_bone currentBone = skel.bones[boneid];
@@ -34,6 +39,13 @@ void skeleton_model::poseBone(int boneid, vec3 direction) {
 
 string skeleton_model::boneName(int boneid) {
 	return skel.bones[boneid].name;
+}
+
+void skeleton_model::nextPose(){
+	if(poseId + 1 < animation.poses.size()){
+	poseId++;
+	}
+	cout << "pose Id: " << poseId << endl;
 }
 
 
@@ -46,6 +58,42 @@ void skeleton_model::printPoses() {
 	cout<<"... Completed printing bone directions"<<endl;	
 }
 
+void skeleton_model::drawAnimation(const mat4 &parentTransform, int boneid) {
+	vec3 boneCol = vec3(0.5f,0.5f,0.5f);
+	vec3 jointCol = vec3(0,1,1);
+	vec3 XAxisCol = vec3(1,0,0);
+	vec3 YAxisCol = vec3(0,1,0);
+	vec3 ZAxisCol = vec3(0,0,1);
+	float lengthScalar = 10;
+
+	mat4 modelview = (parentTransform);// * 1.0f;
+	skeleton_bone currentBone = skel.bones[boneid];
+	skeleton_bone_pose currentSkelPose =   animation.poses.at(poseId).boneTransforms.at(boneid);
+
+	mat4 transformation = mat4(1);
+	transformation = rotate(transformation, currentBone.basis.z, vec3(0,0,1));
+	transformation = rotate(transformation, currentBone.basis.y, vec3(0,1,0));
+	transformation = rotate(transformation, currentBone.basis.x, vec3(1,0,0));
+
+
+	mat4 inverseTransfomation = inverse(transformation);
+	modelview *= transformation;
+	modelview = translate(modelview, currentSkelPose.translation);
+	modelview = rotate(modelview, currentSkelPose.rotation.z, vec3(0,0,1));
+	modelview = rotate(modelview, currentSkelPose.rotation.y, vec3(0,1,0));
+	modelview = rotate(modelview, currentSkelPose.rotation.x, vec3(1,0,0));
+	modelview *= inverseTransfomation;
+
+	drawBone(modelview, boneid);
+
+	mat4 View = translate(modelview, currentBone.length*currentBone.direction);
+	if(currentBone.children.size() != 0) {
+		for (int childID : currentBone.children) {
+			//cout<<childID;
+			drawAnimation(View, childID);
+		}
+	}
+}
 
 
 void skeleton_model::drawBone(const mat4 &parentTransform, int boneid) {
@@ -57,18 +105,17 @@ void skeleton_model::drawBone(const mat4 &parentTransform, int boneid) {
 	vec3 ZAxisCol = vec3(0,0,1);
 	float lengthScalar = 10;
 
-
 	mat4 modelview = (parentTransform);// * 1.0f;
 	skeleton_bone currentBone = skel.bones[boneid];
 
-	//cout<<"Name "<< currentBone.name << endl;
-
 	mat4 View = translate(modelview, currentBone.length*currentBone.direction);
+	if (!isAnimation) {
 	if(currentBone.children.size() != 0) {
 		for (int childID : currentBone.children) {
 			//cout<<childID;
 			drawBone(View, childID);
 		}
+	}
 	}
 
 	mat4 jointTrans = scale(parentTransform, vec3(0.02));
